@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>House VN — Character Asset Generator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#11141a;color:#e9edf3;font:14px Arial,sans-serif}
+.app{display:grid;grid-template-columns:380px 1fr;min-height:100vh}.panel{padding:20px;background:#181c24;border-right:1px solid #2b313d;overflow:auto}.preview{display:flex;align-items:center;justify-content:center;padding:24px;background:#0c0f14}
+h1{font-size:21px;margin:0 0 18px}.group{margin:0 0 16px}label{display:block;margin:0 0 7px;color:#b9c1cd}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,textarea,select{width:100%;background:#0f1218;color:#fff;border:1px solid #343b49;border-radius:8px;padding:9px}textarea{min-height:78px;resize:vertical}
+input[type=range]{padding:0}.range{display:grid;grid-template-columns:1fr 48px;gap:8px;align-items:center}.value{text-align:center;color:#9fc5ff}
+button{border:0;border-radius:8px;padding:10px 13px;cursor:pointer;color:#fff;background:#3b82f6;font-weight:600}button.secondary{background:#2c3442}button:disabled{opacity:.5}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .primary{grid-column:1/-1}.status{margin-top:10px;min-height:20px;color:#9da8b8}
+.canvas{width:min(512px,80vw);height:min(768px,80vh);background-image:linear-gradient(45deg,#222 25%,transparent 25%),linear-gradient(-45deg,#222 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#222 75%),linear-gradient(-45deg,transparent 75%,#222 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;border:1px solid #303744;display:flex;align-items:center;justify-content:center}.canvas img{max-width:100%;max-height:100%;display:block}
+.small{font-size:12px;color:#8792a3}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="panel">
+<h1>Character Asset Generator</h1>
+<div class="group"><label>Референс персонажа</label><input id="ref" type="file" accept="image/*"></div>
+<div class="row">
+<div class="group"><label>Имя</label><input id="name" placeholder="Natasha"></div>
+<div class="group"><label>Рост, см</label><input id="height" type="number" value="170"></div>
+</div>
+<div class="group"><label>Описание</label><textarea id="desc" placeholder="Лицо, волосы, возраст, особенности..."></textarea></div>
+<div class="group"><label>Телосложение</label><select id="build"><option value="very_thin">Очень худое</option><option value="thin">Худое</option><option value="average" selected>Среднее</option><option value="curvy">Фигуристое</option><option value="heavy">Плотное</option></select></div>
+<div class="row">
+<div><label>Грудь</label><div class="range"><input id="bust" type="range" min="1" max="5" value="3"><span class="value" id="bustv">3</span></div></div>
+<div><label>Талия</label><div class="range"><input id="waist" type="range" min="1" max="5" value="3"><span class="value" id="waistv">3</span></div></div>
+<div><label>Бёдра</label><div class="range"><input id="hips" type="range" min="1" max="5" value="3"><span class="value" id="hipsv">3</span></div></div>
+<div><label>Ноги</label><div class="range"><input id="legs" type="range" min="1" max="5" value="3"><span class="value" id="legsv">3</span></div></div>
+</div>
+<div class="group"><label>Поза / ракурс</label><select id="pose"><option value="front">Спереди</option><option value="three_quarter">3/4</option><option value="back">Со спины</option><option value="side">Сбоку</option></select></div>
+<div class="group"><label>Одежда</label><input id="clothing" placeholder="например: белая футболка и джинсовые шорты"></div>
+<div class="group"><label>Изменение тела / внешности</label><textarea id="edit" placeholder="Например: сделать талию уже, бёдра шире, ноги немного толще. Лицо и волосы не менять."></textarea></div>
+<div class="row">
+<label><input id="transparent" type="checkbox" checked> Прозрачный фон</label>
+<label><input id="same" type="checkbox"> Тот же seed</label>
+</div>
+<div class="actions">
+<button class="primary" id="generate">Создать персонажа</button>
+<button class="secondary" id="regenerate">Повторить</button>
+<button class="secondary" id="download" disabled>Скачать PNG</button>
+</div>
+<div class="status" id="status"></div>
+<div class="small">Canvas: 512×768 · IP-Adapter сохраняет идентичность, поле изменения задаёт приоритет для тела.</div>
+</section>
+<section class="preview"><div class="canvas"><img id="result" alt=""></div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+for(const id of ["bust","waist","hips","legs"]){$(id).oninput=()=>$(id+"v").textContent=$(id).value}
+let lastUrl=null;
+async function run(){
+ const f=$("ref").files[0]; if(!f){$("status").textContent="Выбери референс.";return}
+ $("generate").disabled=$("regenerate").disabled=true;$("status").textContent="Генерация...";
+ const fd=new FormData();fd.append("reference",f);fd.append("character_name",$("name").value);fd.append("description",$("desc").value);
+ for(const id of ["build","bust","waist","hips","legs","pose","clothing","edit"])fd.append(id,$(id).value);
+ fd.append("seed_mode",$("same").checked?"same":"new");fd.append("transparent",$("transparent").checked?"true":"false");
+ try{const r=await fetch("/api/generate",{method:"POST",body:fd});const d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||"Ошибка");
+  lastUrl=d.url;$("result").src=d.url+"?t="+Date.now();$("download").disabled=false;$("status").textContent="Готово. Seed: "+d.seed;
+ }catch(e){$("status").textContent="Ошибка: "+e.message}finally{$("generate").disabled=$("regenerate").disabled=false}
+}
+$("generate").onclick=run;$("regenerate").onclick=run;
+$("download").onclick=()=>{if(lastUrl){const a=document.createElement("a");a.href=lastUrl;a.download="character.png";a.click()}}
+</script>
+</body></html>
