@@ -5,39 +5,20 @@
     "_meta": {"title": "SDXL Checkpoint"}
   },
   "2": {
-    "inputs": {"text": "photorealistic adult woman, full body, head to toe, centered, standing naturally, realistic anatomy, realistic skin, high detail", "clip": ["1", 1]},
+    "inputs": {
+      "text": "photorealistic adult woman, full body, head to toe, centered, realistic anatomy, realistic skin, high detail",
+      "clip": ["1", 1]
+    },
     "class_type": "CLIPTextEncode",
     "_meta": {"title": "Positive Prompt"}
   },
   "3": {
-    "inputs": {"text": "low quality, lowres, blurry, jpeg artifacts, watermark, text, logo, bad anatomy, bad hands, extra fingers, missing fingers, deformed, duplicate person, extra limbs, extra head, extra body, multiple people, cropped head, cropped feet, cut off body parts, partial body, missing limbs, fused limbs", "clip": ["1", 1]},
+    "inputs": {
+      "text": "low quality, lowres, blurry, jpeg artifacts, watermark, text, logo, bad anatomy, bad hands, extra fingers, missing fingers, deformed, duplicate person, extra limbs, extra head, extra body, multiple people, cropped head, cropped feet, cut off body parts, partial body, missing limbs, fused limbs",
+      "clip": ["1", 1]
+    },
     "class_type": "CLIPTextEncode",
     "_meta": {"title": "Negative Prompt"}
-  },
-  "4": {
-    "inputs": {"image": "reference.png"},
-    "class_type": "LoadImage",
-    "_meta": {"title": "Character Reference"}
-  },
-  "5": {
-    "inputs": {"interpolation": "LANCZOS", "crop_position": "pad", "sharpening": 0.1, "image": ["4", 0]},
-    "class_type": "PrepImageForClipVision",
-    "_meta": {"title": "Prep Character Reference"}
-  },
-  "6": {
-    "inputs": {"weight": 0.65, "weight_type": "linear", "combine_embeds": "concat", "start_at": 0, "end_at": 0.6, "embeds_scaling": "V only", "model": ["1", 0], "ipadapter": ["7", 0], "image": ["5", 0], "clip_vision": ["8", 0]},
-    "class_type": "IPAdapterAdvanced",
-    "_meta": {"title": "Character Identity IP-Adapter"}
-  },
-  "7": {
-    "inputs": {"ipadapter_file": "ip-adapter-plus_sdxl_vit-h.safetensors"},
-    "class_type": "IPAdapterModelLoader",
-    "_meta": {"title": "Character IP-Adapter Model"}
-  },
-  "8": {
-    "inputs": {"clip_name": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"},
-    "class_type": "CLIPVisionLoader",
-    "_meta": {"title": "CLIP Vision"}
   },
   "9": {
     "inputs": {"width": 512, "height": 768, "batch_size": 1},
@@ -45,7 +26,18 @@
     "_meta": {"title": "512x768 Asset Canvas"}
   },
   "10": {
-    "inputs": {"seed": 123456789, "steps": 32, "cfg": 5.0, "sampler_name": "dpmpp_2m_sde", "scheduler": "karras", "denoise": 1.0, "model": ["6", 0], "positive": ["2", 0], "negative": ["3", 0], "latent_image": ["9", 0]},
+    "inputs": {
+      "seed": 123456789,
+      "steps": 32,
+      "cfg": 5.0,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "denoise": 1.0,
+      "model": ["1", 0],
+      "positive": ["2", 0],
+      "negative": ["3", 0],
+      "latent_image": ["9", 0]
+    },
     "class_type": "KSampler",
     "_meta": {"title": "Generate Character Asset"}
   },
