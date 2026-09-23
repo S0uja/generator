@@ -19,7 +19,6 @@ button{border:0;border-radius:8px;padding:10px 13px;cursor:pointer;color:#fff;ba
 <div class="app">
 <section class="panel">
 <h1>Character Asset Generator</h1>
-<div class="group"><label>Референс персонажа</label><input id="ref" type="file" accept="image/*"></div>
 <div class="row">
 <div class="group"><label>Имя</label><input id="name" placeholder="Natasha"></div>
 <div class="group"><label>Рост, см</label><input id="height" type="number" value="170"></div>
@@ -34,7 +33,7 @@ button{border:0;border-radius:8px;padding:10px 13px;cursor:pointer;color:#fff;ba
 </div>
 <div class="group"><label>Поза / ракурс</label><select id="pose"><option value="front">Спереди</option><option value="three_quarter">3/4</option><option value="back">Со спины</option><option value="side">Сбоку</option></select></div>
 <div class="group"><label>Одежда</label><input id="clothing" placeholder="например: белая футболка и джинсовые шорты"></div>
-<div class="group"><label>Изменение тела / внешности</label><textarea id="edit" placeholder="Например: сделать талию уже, бёдра шире, ноги немного толще. Лицо и волосы не менять."></textarea></div>
+<div class="group"><label>Изменение тела / внешности</label><textarea id="edit" placeholder="Например: сделать талию уже, бёдра шире, ноги немного толще."></textarea></div>
 <div class="row">
 <label><input id="transparent" type="checkbox" checked> Прозрачный фон</label>
 <label><input id="same" type="checkbox"> Тот же seed</label>
@@ -45,7 +44,7 @@ button{border:0;border-radius:8px;padding:10px 13px;cursor:pointer;color:#fff;ba
 <button class="secondary" id="download" disabled>Скачать PNG</button>
 </div>
 <div class="status" id="status"></div>
-<div class="small">Canvas: 512×768 · IP-Adapter сохраняет идентичность, поле изменения задаёт приоритет для тела.</div>
+<div class="small">Canvas: 512×768 · генерация без референса · параметры тела и поле изменения задают внешний вид.</div>
 </section>
 <section class="preview"><div class="canvas"><img id="result" alt=""></div></section>
 </div>
@@ -54,9 +53,8 @@ const $=id=>document.getElementById(id);
 for(const id of ["bust","waist","hips","legs"]){$(id).oninput=()=>$(id+"v").textContent=$(id).value}
 let lastUrl=null;
 async function run(){
- const f=$("ref").files[0]; if(!f){$("status").textContent="Выбери референс.";return}
  $("generate").disabled=$("regenerate").disabled=true;$("status").textContent="Генерация...";
- const fd=new FormData();fd.append("reference",f);fd.append("character_name",$("name").value);fd.append("description",$("desc").value);
+ const fd=new FormData();fd.append("character_name",$("name").value);fd.append("height",$("height").value);fd.append("description",$("desc").value);
  for(const id of ["build","bust","waist","hips","legs","pose","clothing","edit"])fd.append(id,$(id).value);
  fd.append("seed_mode",$("same").checked?"same":"new");fd.append("transparent",$("transparent").checked?"true":"false");
  try{const r=await fetch("/api/generate",{method:"POST",body:fd});const d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||"Ошибка");
